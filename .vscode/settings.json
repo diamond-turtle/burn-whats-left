@@ -1,0 +1,14 @@
+{
+  "luau-lsp.platform.type": "roblox",
+  "luau-lsp.sourcemap.enabled": true,
+  "luau-lsp.sourcemap.autogenerate": true,
+  "luau-lsp.sourcemap.rojoPath": "/home/zuzu/.rokit/bin/rojo",
+  "luau-lsp.sourcemap.rojoProjectFile": "default.project.json",
+  "luau-lsp.sourcemap.includeNonScripts": true,
+  "luau-lsp.types.roblox": true,
+  "luau-lsp.completion.imports.enabled": true,
+  "luau-lsp.completion.imports.suggestServices": true,
+  "luau-lsp.completion.imports.suggestRequires": true,
+  "luau-lsp.require.mode": "relativeToFile",
+  "luau-lsp.ignoreGlobs": ["Packages/**", "ServerPackages/**", "roblox.yml"]
+}

@@ -1,1 +1,3 @@
-print("Hello world, from client!")
+local FurPhysics = require(script.Components.FurPhysics)
+
+FurPhysics._Init()

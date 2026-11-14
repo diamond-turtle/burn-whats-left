@@ -1,8 +1,15 @@
-local ReplicatedStorage = game:GetService("ReplicatedStorage")
-local Jolt = require(ReplicatedStorage.Packages.Jolt)
-print("Hello world, from server")
+--!strict
+local ComponentsFolder = script:WaitForChild("Components"):GetChildren()
 
-local testChannel = Jolt.Server("testChannel")
-testChannel:Connect(function(player, args)
-	print(player, args)
-end)
+type Component = { _Init: (() -> ())? }
+
+for _, component in ComponentsFolder do
+	if component:IsA("ModuleScript") then
+		local module = require(component) :: Component
+		if module._Init then
+			task.spawn(function()
+				module._Init()
+			end)
+		end
+	end
+end

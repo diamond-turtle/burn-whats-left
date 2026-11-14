@@ -1,5 +1,12 @@
-local FurPhysics = require(script.Components.FurPhysics)
-local Tests = require(script.Components.Tests)
+local ComponentsFolder = script:WaitForChild("Components"):GetChildren()
 
-FurPhysics._Init()
-Tests._Init()
+type Component = { _Init: (() -> ())? }
+
+for _, component in ComponentsFolder do
+	if component:IsA("ModuleScript") then
+		local module = require(component) :: Component
+		if module._Init then
+			module._Init()
+		end
+	end
+end

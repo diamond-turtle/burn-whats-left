@@ -2,11 +2,12 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local Jolt = require(ReplicatedStorage.Packages.Jolt)
 local Tests = {}
 
-local testChannel = Jolt.Client("testChannel")
+local _testChannel = Jolt.Client("testChannel")
 local monster = game.Workspace:WaitForChild("Monster")
-local Animator = monster:WaitForChild("AnimationController"):WaitForChild("Animator") :: Animator
+local _Animator = monster:WaitForChild("AnimationController"):WaitForChild("Animator") :: Animator
 
 function Tests._Init()
+	--[[
 	testChannel:Fire("i connected")
 
 	local animations = monster:WaitForChild("Animations"):GetChildren()
@@ -24,6 +25,8 @@ function Tests._Init()
 
 		print("playing", tostring(chosenAnim))
 	end
+    
+    --]]
 end
 
 return Tests

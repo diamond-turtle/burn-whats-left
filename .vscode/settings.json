@@ -1,4 +1,7 @@
 {
+  "files.associations": {
+    "*.luau": "luau"
+  },
   "luau-lsp.platform.type": "roblox",
   "luau-lsp.sourcemap.enabled": true,
   "luau-lsp.sourcemap.autogenerate": true,

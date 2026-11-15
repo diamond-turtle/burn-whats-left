@@ -30,9 +30,17 @@ local function getSnapshot(_player)
 	}
 end
 
+local function checkLose()
+	if GameState.FirePercentage == 0 and GameState.Matches <= 0 then
+		print("lose")
+		-- make this actually do something when im not lazy
+	end
+end
+
 function GameController._Init()
 	snapshotChannel.OnInvoke = getSnapshot
 	FireController.PercentageChanged:Connect(fireChanged)
+	FireController.PercentageChanged:Connect(checkLose)
 end
 
 return GameController

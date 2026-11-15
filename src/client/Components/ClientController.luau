@@ -16,6 +16,8 @@ ClientController.State = {
 	Stockpile = 0,
 	GamePhase = 0,
 }
+local fireBase = 100
+local fireBaseTick = 0
 ClientController.FireSignal = Signal.new()
 
 -- Jolt
@@ -23,16 +25,29 @@ local fireChannel = Jolt.Client("fireState")
 local snapshotChannel = Jolt.Client("gameSnapshot")
 
 -- Hooks
-local function fireStateChanged(percentage)
+local function nowTick()
+	return math.floor(workspace:GetServerTimeNow())
+end
+
+local function refreshFire()
+	local percentage = math.max(fireBase - (nowTick() - fireBaseTick), 0)
 	ClientController.State.FirePercentage = percentage
 	ClientController.FireSignal:Fire(percentage)
 end
 
+local function fireStateChanged(percentage, tick)
+	fireBase = percentage
+	fireBaseTick = tick
+	refreshFire()
+end
+
 local function startFireLoop()
-	while task.wait(1) do
+	local last = nowTick()
+	while true do
+		task.wait(last + 1 - workspace:GetServerTimeNow())
+		last += 1
 		if ClientController.State.FirePercentage > 0 then
-			ClientController.State.FirePercentage -= 1
-			ClientController.FireSignal:Fire(ClientController.State.FirePercentage)
+			refreshFire()
 		end
 	end
 end
@@ -51,6 +66,9 @@ function ClientController._Init()
 	for key, value in snapshot do
 		ClientController.State[key] = value
 	end
+	fireBase = snapshot.FirePercentage
+	fireBaseTick = snapshot.FireTick
+	refreshFire()
 
 	startFireLoop()
 end

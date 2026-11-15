@@ -15,13 +15,14 @@ end
 
 -- Hooks
 local function fireChanged()
-	fireStateChannel:FireAll(getFire())
+	fireStateChannel:FireAll(getFire(), FireController.Tick)
 end
 
 -- sent to the client on join
 local function getSnapshot(_player)
 	return {
 		FirePercentage = getFire(),
+		FireTick = FireController.Tick,
 		Matches = GameState.Matches,
 		Logs = GameState.Logs,
 		Stockpile = GameState.Stockpile,

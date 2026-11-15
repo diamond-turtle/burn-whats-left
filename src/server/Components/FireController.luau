@@ -7,9 +7,12 @@ local FireController = {}
 
 FireController.FireChanged = Signal.new()
 FireController.PercentageChanged = Signal.new() -- not fired on normal drain
+FireController.Tick = math.floor(workspace:GetServerTimeNow()) -- last drain tick, client syncs to this
 
 local function StartLoop()
-	while task.wait(1) do
+	while true do
+		task.wait(FireController.Tick + 1 - workspace:GetServerTimeNow())
+		FireController.Tick += 1
 		if GameState.FirePercentage > 0 then
 			GameState.FirePercentage -= 1
 
@@ -18,6 +21,8 @@ local function StartLoop()
 				FireController.PercentageChanged:Fire()
 			end
 		end
+
+		print(GameState.FirePercentage)
 	end
 end
 

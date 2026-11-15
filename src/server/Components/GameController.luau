@@ -2,20 +2,36 @@
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local Jolt = require(ReplicatedStorage.Packages.Jolt)
 local FireController = require(script.Parent.FireController)
+local GameState = require(script.Parent.GameState)
 local GameController = {}
-
--- Variables
 
 -- Jolt
 local fireStateChannel = Jolt.Server("fireState")
+local snapshotChannel = Jolt.Server("gameSnapshot")
+
+local function getFire()
+	return GameState.FirePercentage
+end
 
 -- Hooks
-local function fireStateChanged(bool)
-	fireStateChannel:FireAll(bool)
+local function fireChanged()
+	fireStateChannel:FireAll(getFire())
+end
+
+-- sent to the client on join
+local function getSnapshot(_player)
+	return {
+		FirePercentage = getFire(),
+		Matches = GameState.Matches,
+		Logs = GameState.Logs,
+		Stockpile = GameState.Stockpile,
+		GamePhase = GameState.GamePhase,
+	}
 end
 
 function GameController._Init()
-	FireController.FireChanged:Connect(fireStateChanged)
+	snapshotChannel.OnInvoke = getSnapshot
+	FireController.PercentageChanged:Connect(fireChanged)
 end
 
 return GameController

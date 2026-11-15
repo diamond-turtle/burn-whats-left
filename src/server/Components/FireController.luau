@@ -5,16 +5,17 @@ local Signal = require(ReplicatedStorage.Packages.Signal)
 local Math = require(ReplicatedStorage.Shared.Math)
 local FireController = {}
 
-FireController.TickDuration = 1 -- in seconds
 FireController.FireChanged = Signal.new()
+FireController.PercentageChanged = Signal.new() -- not fired on normal drain
 
 local function StartLoop()
-	while task.wait(FireController.TickDuration) do
+	while task.wait(1) do
 		if GameState.FirePercentage > 0 then
 			GameState.FirePercentage -= 1
 
 			if GameState.FirePercentage == 0 then
 				FireController.FireChanged:Fire(false)
+				FireController.PercentageChanged:Fire()
 			end
 		end
 	end
@@ -31,7 +32,12 @@ function FireController.AddPercentage(num: number)
 		FireController.FireChanged:Fire(true)
 	end
 
-	GameState.FirePercentage = Math.clamp(GameState.FirePercentage + num, 0, 100)
+	local old = GameState.FirePercentage
+	GameState.FirePercentage = Math.clamp(old + num, 0, 100)
+
+	if GameState.FirePercentage ~= old then
+		FireController.PercentageChanged:Fire()
+	end
 end
 
 return FireController

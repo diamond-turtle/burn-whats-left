@@ -1,0 +1,11 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "sourcemap",
+      "type": "shell",
+      "command": "rojo sourcemap default.project.json -o sourcemap.json",
+      "problemMatcher": []
+    }
+  ]
+}

@@ -3,7 +3,15 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local GameState = require(script.Parent.GameState)
 local Signal = require(ReplicatedStorage.Packages.Signal)
 local Math = require(ReplicatedStorage.Shared.Math)
+local PromptHelper = require(ReplicatedStorage.Shared.PromptHelper)
 local FireController = {}
+
+local LogFire = 10 -- percent per log
+local MaxDist = 12
+local MatchFire = 100 -- percent per match
+
+local logPrompt: ProximityPrompt
+local lightPrompt: ProximityPrompt
 
 FireController.FireChanged = Signal.new()
 FireController.PercentageChanged = Signal.new() -- not fired on normal drain
@@ -26,7 +34,43 @@ local function StartLoop()
 	end
 end
 
+local function UpdatePrompts()
+	if not logPrompt then
+		return
+	end
+	logPrompt.Enabled = GameState.FirePercentage > 0
+	lightPrompt.Enabled = GameState.FirePercentage == 0 and GameState.Matches > 0
+end
+
+local function SetupPrompt()
+	local fireplace = workspace:WaitForChild("Fireplace")
+	local attachment = fireplace:WaitForChild("Attachment")
+
+	logPrompt = attachment:WaitForChild("LogPrompt") :: ProximityPrompt
+	lightPrompt = attachment:WaitForChild("LightPrompt") :: ProximityPrompt
+
+	PromptHelper.Connect(logPrompt, MaxDist, function()
+		if GameState.Logs <= 0 or GameState.FirePercentage <= 0 or GameState.FirePercentage >= 100 then
+			return
+		end
+		GameState.Logs -= 1
+		FireController.AddPercentage(LogFire)
+	end)
+
+	PromptHelper.Connect(lightPrompt, MaxDist, function()
+		if GameState.FirePercentage > 0 or GameState.Matches <= 0 then
+			return
+		end
+		GameState.Matches -= 1
+		FireController.AddPercentage(MatchFire)
+	end)
+
+	UpdatePrompts()
+end
+
 function FireController._Init()
+	FireController.PercentageChanged:Connect(UpdatePrompts)
+	task.spawn(SetupPrompt)
 	task.spawn(function()
 		StartLoop()
 	end)

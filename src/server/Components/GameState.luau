@@ -5,6 +5,8 @@ local GameState = {
 	Matches = 2,
 	Logs = 2,
 	Stockpile = 0,
+	Piles = {} :: { [string]: number }, -- logs in each lodge pile
+	SourceLogs = 20, -- placeholder until trees
 	GamePhase = 0,
 	Time = 0,
 }

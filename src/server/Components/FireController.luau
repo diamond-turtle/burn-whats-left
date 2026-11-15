@@ -1,6 +1,7 @@
 --!strict
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local GameState = require(script.Parent.GameState)
+local LogController = require(script.Parent.LogController)
 local Signal = require(ReplicatedStorage.Packages.Signal)
 local Math = require(ReplicatedStorage.Shared.Math)
 local PromptHelper = require(ReplicatedStorage.Shared.PromptHelper)
@@ -54,6 +55,7 @@ local function SetupPrompt()
 			return
 		end
 		GameState.Logs -= 1
+		LogController.UpdatePrompts()
 		FireController.AddPercentage(LogFire)
 	end)
 

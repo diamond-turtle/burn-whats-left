@@ -8,7 +8,9 @@ local GameState = {
 	Piles = {} :: { [string]: number }, -- logs in each lodge pile
 	SourceLogs = 20, -- placeholder until trees
 	GamePhase = 0,
-	Time = 0,
+	Phase = "Day" :: string, -- day or night
+	Time = 0, -- seconds into the day/night cycle
+	Day = 1,
 }
 
 return GameState

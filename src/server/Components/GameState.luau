@@ -7,6 +7,7 @@ local GameState = {
 	Stockpile = 0,
 	Piles = {} :: { [string]: number }, -- logs in each lodge pile
 	SourceLogs = 20, -- placeholder until trees
+	Burned = {} :: { [string]: boolean }, -- furniture names
 	GamePhase = 0,
 	Phase = "Day" :: string, -- day or night
 	Time = 0, -- seconds into the day/night cycle

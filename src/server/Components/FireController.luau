@@ -30,8 +30,6 @@ local function StartLoop()
 				FireController.PercentageChanged:Fire()
 			end
 		end
-
-		print(GameState.FirePercentage)
 	end
 end
 
@@ -39,8 +37,9 @@ local function UpdatePrompts()
 	if not logPrompt then
 		return
 	end
-	logPrompt.Enabled = GameState.FirePercentage > 0
-	lightPrompt.Enabled = GameState.FirePercentage == 0 and GameState.Matches > 0
+	logPrompt.Enabled = GameState.FirePercentage > 0 and GameState.Finale < 3 -- no feeding once hidden
+	lightPrompt.Enabled = GameState.FirePercentage == 0 and GameState.Matches > 0 and GameState.Finale == 0
+	lightPrompt.ObjectText = if GameState.Matches == 1 then "This is your last match" else `{GameState.Matches} matches`
 end
 
 local function SetupPrompt()
@@ -55,7 +54,7 @@ local function SetupPrompt()
 			return
 		end
 		GameState.Logs -= 1
-		LogController.UpdatePrompts()
+		LogController.Refresh()
 		FireController.AddPercentage(LogFire)
 	end)
 
@@ -65,6 +64,7 @@ local function SetupPrompt()
 		end
 		GameState.Matches -= 1
 		FireController.AddPercentage(MatchFire)
+		LogController.Refresh()
 	end)
 
 	UpdatePrompts()

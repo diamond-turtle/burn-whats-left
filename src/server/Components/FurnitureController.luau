@@ -12,7 +12,7 @@ local prompts: { ProximityPrompt } = {}
 
 local function UpdatePrompts()
 	for _, prompt in prompts do
-		prompt.Enabled = GameState.FirePercentage > 0
+		prompt.Enabled = GameState.FirePercentage > 0 and GameState.Finale < 3
 	end
 end
 
@@ -26,9 +26,9 @@ local function Setup(piece: Instance)
 	local prompt = Instance.new("ProximityPrompt")
 	prompt.ActionText = "Burn"
 	prompt.ObjectText = piece.Name
-	prompt.KeyboardKeyCode = Enum.KeyCode.E
+	prompt.KeyboardKeyCode = Enum.KeyCode.R -- E is everything else
 	prompt.HoldDuration = 1 -- no burning stuff by accident
-	prompt.MaxActivationDistance = 10
+	prompt.MaxActivationDistance = 6 -- so the closest piece wins
 	prompt.RequiresLineOfSight = false
 	prompt.Parent = part
 	table.insert(prompts, prompt)

@@ -16,10 +16,15 @@ ClientController.State = {
 	Matches = 0,
 	Logs = 0,
 	Stockpile = 0,
+	TreesLeft = 0,
+	Tools = {},
+	Finale = 0,
+	Objective = "",
 	GamePhase = 0,
 	Phase = "Day",
 	Time = 0,
 	Day = 1,
+	Cold = 100,
 }
 local fireBase = 100
 local fireBaseTick = 0
@@ -29,10 +34,16 @@ local dayBase = 1
 ClientController.FireSignal = Signal.new()
 ClientController.TimeSignal = Signal.new() -- every frame, (t, hours)
 ClientController.PhaseSignal = Signal.new()
+ClientController.ColdSignal = Signal.new()
+ClientController.ItemsSignal = Signal.new()
+ClientController.FinaleSignal = Signal.new() -- (step, objective)
 
 -- Jolt
 local fireChannel = Jolt.Client("fireState")
 local timeChannel = Jolt.Client("timeState")
+local coldChannel = Jolt.Client("coldState")
+local itemsChannel = Jolt.Client("itemsState")
+local finaleChannel = Jolt.Client("finaleState")
 local snapshotChannel = Jolt.Client("gameSnapshot")
 
 -- Hooks
@@ -61,6 +72,24 @@ local function startFireLoop()
 			refreshFire()
 		end
 	end
+end
+
+local function coldStateChanged(cold)
+	ClientController.State.Cold = cold
+	ClientController.ColdSignal:Fire(cold)
+end
+
+local function itemsStateChanged(items)
+	for key, value in items do
+		ClientController.State[key] = value
+	end
+	ClientController.ItemsSignal:Fire(ClientController.State)
+end
+
+local function finaleStateChanged(step, objective)
+	ClientController.State.Finale = step
+	ClientController.State.Objective = objective
+	ClientController.FinaleSignal:Fire(step, objective)
 end
 
 local function timeStateChanged(t, tick, day)
@@ -96,12 +125,19 @@ function ClientController.GetPhase(): string
 	return ClientController.State.Phase
 end
 
+function ClientController.GetCold(): number
+	return ClientController.State.Cold
+end
+
 -- Will be responsible for listening to gamestate changes, such as fire state, game phase, etc
 function ClientController._Init()
 	humanoid:SetStateEnabled(Enum.HumanoidStateType.Jumping, false)
 
 	fireChannel:Connect(fireStateChanged)
 	timeChannel:Connect(timeStateChanged)
+	coldChannel:Connect(coldStateChanged)
+	itemsChannel:Connect(itemsStateChanged)
+	finaleChannel:Connect(finaleStateChanged)
 	local snapshot = snapshotChannel:Invoke()
 
 	for key, value in snapshot do
@@ -110,6 +146,9 @@ function ClientController._Init()
 	fireBase = snapshot.FirePercentage
 	fireBaseTick = snapshot.FireTick
 	refreshFire()
+	coldStateChanged(snapshot.Cold)
+	itemsStateChanged(snapshot.Items)
+	finaleStateChanged(snapshot.Finale, snapshot.Objective)
 
 	timeStateChanged(snapshot.Time, snapshot.TimeTick, snapshot.Day)
 	RunService.Heartbeat:Connect(refreshTime)

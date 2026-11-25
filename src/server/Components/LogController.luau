@@ -2,9 +2,12 @@
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local GameState = require(script.Parent.GameState)
 local PromptHelper = require(ReplicatedStorage.Shared.PromptHelper)
+local Signal = require(ReplicatedStorage.Packages.Signal)
 local LogController = {}
 
 local MaxCarry = 3
+LogController.MaxCarry = MaxCarry
+LogController.Changed = Signal.new() -- carry, piles, trees, tools
 local MaxDist = 12
 local PileNames = { "LogPile1", "LogPile2", "LogPile3" }
 
@@ -12,7 +15,6 @@ local pileModels: { [string]: Instance } = {}
 local pileCaps: { [string]: number } = {}
 local dropPrompts: { [string]: ProximityPrompt } = {}
 local takePrompts: { [string]: ProximityPrompt } = {}
-local sourcePrompt: ProximityPrompt?
 
 local function MakePrompt(parent: Instance, action: string, key: Enum.KeyCode): ProximityPrompt
 	local prompt = Instance.new("ProximityPrompt")
@@ -24,10 +26,6 @@ local function MakePrompt(parent: Instance, action: string, key: Enum.KeyCode): 
 	prompt.RequiresLineOfSight = false
 	prompt.Parent = parent
 	return prompt
-end
-
-local function PrintLogs()
-	print(`carry {GameState.Logs}/{MaxCarry} stockpile {GameState.Stockpile} source {GameState.SourceLogs}`)
 end
 
 -- show only as many logs as the pile has
@@ -44,9 +42,6 @@ end
 
 function LogController.UpdatePrompts()
 	local hasRoom = GameState.Logs < MaxCarry
-	if sourcePrompt then
-		sourcePrompt.Enabled = hasRoom and GameState.SourceLogs > 0
-	end
 	for name, prompt in dropPrompts do
 		prompt.Enabled = GameState.Logs > 0 and GameState.Piles[name] < pileCaps[name]
 	end
@@ -55,9 +50,10 @@ function LogController.UpdatePrompts()
 	end
 end
 
-local function Changed()
+-- call after touching carry or tools
+function LogController.Refresh()
 	LogController.UpdatePrompts()
-	PrintLogs()
+	LogController.Changed:Fire()
 end
 
 local function SetupPile(name: string)
@@ -90,7 +86,7 @@ local function SetupPile(name: string)
 		GameState.Piles[name] += amount
 		GameState.Stockpile += amount
 		ShowLogs(name)
-		Changed()
+		LogController.Refresh()
 	end)
 
 	PromptHelper.Connect(take, MaxDist, function()
@@ -101,24 +97,7 @@ local function SetupPile(name: string)
 		GameState.Piles[name] -= 1
 		GameState.Stockpile -= 1
 		ShowLogs(name)
-		Changed()
-	end)
-
-	LogController.UpdatePrompts()
-end
-
-local function SetupSource()
-	local source = workspace:WaitForChild("WoodSource")
-	local prompt = MakePrompt(source, "Pick up", Enum.KeyCode.E)
-	sourcePrompt = prompt
-
-	PromptHelper.Connect(prompt, MaxDist, function()
-		if GameState.SourceLogs <= 0 or GameState.Logs >= MaxCarry then
-			return
-		end
-		GameState.SourceLogs -= 1
-		GameState.Logs += 1
-		Changed()
+		LogController.Refresh()
 	end)
 
 	LogController.UpdatePrompts()
@@ -128,7 +107,6 @@ function LogController._Init()
 	for _, name in PileNames do
 		task.spawn(SetupPile, name)
 	end
-	task.spawn(SetupSource)
 end
 
 return LogController
